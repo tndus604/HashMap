@@ -90,9 +90,30 @@ class HashMap:
 
     def put(self, key: str, value: object) -> None:
         """
-        TODO: Write this implementation
+        Updates the key/value pair in the hash map.
+        If the given key already exists in the hash map, its associated value is replaced with the new value.
+        If the given key is not in the hash map, a new key/value pair is added.
         """
-        pass
+        # the table must be resized to double its current
+        # capacity when this method is called and the current load factor of the table is
+        # greater than or equal to 1.0.
+        if self.table_load() is not None and self.table_load() >= 1.0:
+            self.resize_table(self._capacity * 2)
+
+        hash_value = self._hash_function(key)
+        index = hash_value % self._capacity
+        linked_list = self._buckets[index]
+
+        current_node = linked_list.contains(key)
+
+        while current_node is not None:
+            if current_node.key == key:
+                current_node.value = value
+                return
+            current_node = current_node.next
+
+        linked_list.insert(key, value)
+        self._size += 1
 
     def empty_buckets(self) -> int:
         """
