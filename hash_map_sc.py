@@ -97,11 +97,11 @@ class HashMap:
         # the table must be resized to double its current
         # capacity when this method is called and the current load factor of the table is
         # greater than or equal to 1.0.
-        if self.table_load() is not None and self.table_load() >= 1.0:
-            self.resize_table(self._capacity * 2)
+        if self.table_load() >= 1.0:
+            self.resize_table(self.get_capacity() * 2)
 
         hash_value = self._hash_function(key)
-        index = hash_value % self._capacity
+        index = hash_value % self.get_capacity()
         linked_list = self._buckets[index]
 
         current_node = linked_list.contains(key)
@@ -117,33 +117,80 @@ class HashMap:
 
     def empty_buckets(self) -> int:
         """
-        TODO: Write this implementation
+        Returns the number of empty buckets in the hash table.
         """
-        pass
+        empty_buckets = 0
+
+        for i in range(self._capacity):
+            if self._buckets.get_at_index(i).length() == 0:
+                empty_buckets += 1
+
+        return empty_buckets
 
     def table_load(self) -> float:
         """
-        TODO: Write this implementation
+        Returns the current hash table load factor.
         """
-        pass
+        return self._size / self._capacity
 
     def clear(self) -> None:
         """
-        TODO: Write this implementation
+        Clears the contents of the hash map. It does not change the underlying hash table capacity.
         """
-        pass
+        self._buckets = DynamicArray()
+        self._size = 0
+
+        for i in range(self._capacity):
+            self._buckets.append(LinkedList())
 
     def resize_table(self, new_capacity: int) -> None:
         """
-        TODO: Write this implementation
+        Changes the capacity of the internal hash table. All existing key/value pairs must remain in the new hash map,
+        and all hash table links must be rehashed. (Consider calling another HashMap method for this part).
         """
-        pass
+        if new_capacity < 1:
+            return
+
+        if not self._is_prime(new_capacity):
+            new_capacity = self._next_prime(new_capacity)
+
+        new_table = HashMap(new_capacity, self._hash_function)
+
+        # this is to prevent next_prime from going to 3, when it should stay at 2 (since 2 is prime)
+        if new_capacity == 2:
+            new_table._capacity = 2
+
+        for i in range(self._capacity):
+            if self._buckets.get_at_index(i).length() > 0:
+                # chain_key = self._buckets.get_at_index(i).__iter__()
+                for item in self._buckets.get_at_index(i):
+                    new_table.put(item.key, item.value)
+                # for _ in range(self._buckets.get_at_index(i).length()):
+                #     node = chain_key.__next__()
+                #     new_table.put(node.key, node.value)
+
+        # Reassigning new values to self
+        self._buckets = new_table._buckets
+        self._size = new_table._size
+        self._capacity = new_table._capacity
 
     def get(self, key: str):
         """
-        TODO: Write this implementation
+        Returns the value associated with the given key.
+        If the key is not in the hash map, the method returns None.
         """
-        pass
+        hash_value = self._hash_function(key)
+        index = hash_value % self.get_capacity()
+        linked_list = self._buckets[index]
+
+        current_node = linked_list.contains(key)
+
+        while current_node is not None:
+            if current_node.key == key:
+                return current_node.value
+            current_node = current_node.next
+
+        return None
 
     def contains_key(self, key: str) -> bool:
         """
