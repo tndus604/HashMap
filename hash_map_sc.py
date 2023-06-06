@@ -155,22 +155,21 @@ class HashMap:
         if not self._is_prime(new_capacity):
             new_capacity = self._next_prime(new_capacity)
 
-        new_table = HashMap(new_capacity, self._hash_function)
+        new_buckets = DynamicArray()
 
-        # this is to prevent next_prime from going to 3, when it should stay at 2 (since 2 is prime)
-        # if new_capacity == 2:
-        #     new_table._capacity = 2
+        for _ in range(new_capacity):
+            new_buckets.append(LinkedList())
 
         for i in range(self._capacity):
             linked_list = self._buckets.get_at_index(i)
-            if linked_list.length() > 0:
+            if linked_list is not None:
                 for node in linked_list:
-                    new_table.put(node.key, node.value)
+                    new_bucket_index = self._hash_function(node.key) % new_capacity
+                    new_bucket = new_buckets.get_at_index(new_bucket_index)
+                    new_bucket.insert(node.key, node.value)
 
-        # Reassigning new values to self
-        self._buckets = new_table._buckets
-        self._size = new_table._size
-        self._capacity = new_table._capacity
+        self._buckets = new_buckets
+        self._capacity = new_capacity
 
     def get(self, key: str):
         """
@@ -214,14 +213,31 @@ class HashMap:
         Removes the given key and its associated value from the hash map.
         If the key is not in the hash map, the method does nothing.
         """
-        for i in range(self._capacity):
-            linked_list = self._buckets.get_at_index(i)
-            if linked_list.length() > 0:
-                for node in linked_list:
-                    if node.key == key:
-                        return True
+        hash_value = self._hash_function(key)
+        index = hash_value % self.get_capacity()
+        linked_list = self._buckets[index]
 
-        return False
+        # current_node = linked_list.contains(key)
+        # previous_node = None
+
+        if linked_list.contains(key) is not None:
+            value = linked_list.contains(key).value
+            linked_list.remove(key)
+            self._size -= 1
+            return value
+
+        # while current_node is not None:
+        #     if current_node.key == key:
+        #         if previous_node is None:
+        #             linked_list.head = current_node.next
+        #         else:
+        #             previous_node.next = current_node.next
+        #         self._size -= 1
+        #         return
+        #     previous_node = current_node
+        #     current_node = current_node.next
+
+
 
     def get_keys_and_values(self) -> DynamicArray:
         """
