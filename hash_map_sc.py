@@ -102,7 +102,7 @@ class HashMap:
 
         hash_value = self._hash_function(key)
         index = hash_value % self.get_capacity()
-        linked_list = self._buckets[index]
+        linked_list = self._buckets.get_at_index(index)
 
         current_node = linked_list.contains(key)
 
@@ -122,7 +122,8 @@ class HashMap:
         empty_buckets = 0
 
         for i in range(self._capacity):
-            if self._buckets.get_at_index(i).length() == 0:
+            linked_list = self._buckets.get_at_index(i)
+            if linked_list.length() == 0:
                 empty_buckets += 1
 
         return empty_buckets
@@ -157,17 +158,14 @@ class HashMap:
         new_table = HashMap(new_capacity, self._hash_function)
 
         # this is to prevent next_prime from going to 3, when it should stay at 2 (since 2 is prime)
-        if new_capacity == 2:
-            new_table._capacity = 2
+        # if new_capacity == 2:
+        #     new_table._capacity = 2
 
         for i in range(self._capacity):
-            if self._buckets.get_at_index(i).length() > 0:
-                # chain_key = self._buckets.get_at_index(i).__iter__()
-                for item in self._buckets.get_at_index(i):
-                    new_table.put(item.key, item.value)
-                # for _ in range(self._buckets.get_at_index(i).length()):
-                #     node = chain_key.__next__()
-                #     new_table.put(node.key, node.value)
+            linked_list = self._buckets.get_at_index(i)
+            if linked_list.length() > 0:
+                for node in linked_list:
+                    new_table.put(node.key, node.value)
 
         # Reassigning new values to self
         self._buckets = new_table._buckets
@@ -210,31 +208,20 @@ class HashMap:
 
         return False
 
+
     def remove(self, key: str) -> None:
         """
         Removes the given key and its associated value from the hash map.
         If the key is not in the hash map, the method does nothing.
         """
-        hash_value = self._hash_function(key)
-        index = hash_value % self.get_capacity()
-        linked_list = self._buckets.get_at_index(index)
+        for i in range(self._capacity):
+            linked_list = self._buckets.get_at_index(i)
+            if linked_list.length() > 0:
+                for node in linked_list:
+                    if node.key == key:
+                        return True
 
-        current_node = linked_list.contains(key)
-        prev_node = None
-
-        while current_node is not None:
-            if current_node.key == key:
-                if prev_node is None:
-                    # Remove the first node in the linked list
-                    linked_list.head = current_node.next
-                else:
-                    # Remove a node from the middle or end of the linked list
-                    prev_node.next = current_node.next
-                current_node.next = None
-                self._size -= 1
-                return
-            prev_node = current_node
-            current_node = current_node.next
+        return False
 
     def get_keys_and_values(self) -> DynamicArray:
         """
@@ -245,19 +232,39 @@ class HashMap:
 
         for i in range(self._capacity):
             linked_list = self._buckets.get_at_index(i)
-            for node in linked_list:
-                new_array.append((node.key, node.value))
+            if linked_list.length() > 0:
+                for node in linked_list:
+                    new_array.append((node.key, node.value))
 
         return new_array
 
 
 def find_mode(da: DynamicArray) -> (DynamicArray, int):
     """
-    TODO: Write this implementation
+    Returns a tuple containing the mode (most occurring) value(s) of the array and the highest frequency.
     """
     # if you'd like to use a hash map,
     # use this instance of your Separate Chaining HashMap
     map = HashMap()
+    for i in range(da.length()):
+        if not map.contains_key(da.get_at_index(i)):
+            map.put(da.get_at_index(i), 1)
+        else:
+            map.put(da.get_at_index(i), map.get(da.get_at_index(i)) + 1)
+
+    frequency = 0
+    arr = map.get_keys_and_values()
+    mode_arr = DynamicArray()
+    for i in range(arr.length()):
+        if frequency < arr.get_at_index(i)[1]:
+            frequency = arr.get_at_index(i)[1]
+
+    for i in range(arr.length()):
+        if arr.get_at_index(i)[1] == frequency:
+            mode_arr.append(arr.get_at_index(i)[0])
+
+    # a tuple containing a dynamic array of the most frequent values and the frequency
+    return mode_arr, frequency
 
 
 # ------------------- BASIC TESTING ---------------------------------------- #
