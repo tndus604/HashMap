@@ -194,9 +194,21 @@ class HashMap:
 
     def contains_key(self, key: str) -> bool:
         """
-        TODO: Write this implementation
+        Returns True if the given key is in the hash map, otherwise it returns False.
+        An empty hash map does not contain any keys.
         """
-        pass
+        hash_value = self._hash_function(key)
+        index = hash_value % self.get_capacity()
+        linked_list = self._buckets.get_at_index(index)
+
+        current_node = linked_list.contains(key)
+
+        while current_node is not None:
+            if current_node.key == key:
+                return True
+            current_node = current_node.next
+
+        return False
 
     def remove(self, key: str) -> None:
         """
