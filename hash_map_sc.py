@@ -212,15 +212,43 @@ class HashMap:
 
     def remove(self, key: str) -> None:
         """
-        TODO: Write this implementation
+        Removes the given key and its associated value from the hash map.
+        If the key is not in the hash map, the method does nothing.
         """
-        pass
+        hash_value = self._hash_function(key)
+        index = hash_value % self.get_capacity()
+        linked_list = self._buckets.get_at_index(index)
+
+        current_node = linked_list.contains(key)
+        prev_node = None
+
+        while current_node is not None:
+            if current_node.key == key:
+                if prev_node is None:
+                    # Remove the first node in the linked list
+                    linked_list.head = current_node.next
+                else:
+                    # Remove a node from the middle or end of the linked list
+                    prev_node.next = current_node.next
+                current_node.next = None
+                self._size -= 1
+                return
+            prev_node = current_node
+            current_node = current_node.next
 
     def get_keys_and_values(self) -> DynamicArray:
         """
-        TODO: Write this implementation
+        Returns a dynamic array where each index contains a tuple of a key/value pair stored in the hash map.
+        The order of the keys in the dynamic array does not matter.
         """
-        pass
+        new_array = DynamicArray()
+
+        for i in range(self._capacity):
+            linked_list = self._buckets.get_at_index(i)
+            for node in linked_list:
+                new_array.append((node.key, node.value))
+
+        return new_array
 
 
 def find_mode(da: DynamicArray) -> (DynamicArray, int):
